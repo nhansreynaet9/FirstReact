@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css'; 
+
 function App() {
   const [users, setUsers] = useState([]);
   const [name, setName] = useState('');
@@ -13,7 +14,7 @@ function App() {
   }, []);
 
   const fetchUsers = () => {
-    fetch('http://localhost:5000/users') // get request to the backend
+    fetch('http://localhost:5000/users')
       .then(res => res.json())
       .then(data => setUsers(data))
       .catch(err => console.error('Error fetching users:', err));
@@ -31,7 +32,7 @@ function App() {
     try {
       const res = await fetch('http://localhost:5000/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // send post request to the backend with new name and email
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email }),
       });
 
@@ -48,6 +49,23 @@ function App() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // handleRemove is now outside handleSubmit
+  const handleRemove = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/users/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      setUsers(prev => prev.filter(user => user.id !== id));
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -84,9 +102,26 @@ function App() {
       {users.length === 0 ? (
         <p>Loading users...</p>
       ) : (
-        <ul>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {users.map(user => (
-            <li key={user.id}>{user.name} ({user.email})</li>
+            <li 
+              key={user.id} 
+              style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}
+            >
+              <span>{user.name} ({user.email})</span>
+              <button
+                onClick={() => handleRemove(user.id)}
+                style={{
+                  backgroundColor: 'red',
+                  color: 'white',
+                  border: 'none',
+                  padding: '4px 8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Remove
+              </button>
+            </li>
           ))}
         </ul>
       )}
@@ -95,4 +130,5 @@ function App() {
 }
 
 export default App;
+
 
